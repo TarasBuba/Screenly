@@ -1,75 +1,59 @@
-# React + TypeScript + Vite
+# 🎬 Screenly
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+A simple, but not simplistic, movie catalog. Built with React + TypeScript, powered by TMDB — search movies, sort them, filter by genre, all without annoying delays or UI flicker.
 
-Currently, two official plugins are available:
+This isn't a "20-minute tutorial clone." Building it meant actually thinking through request architecture, race conditions, and the fact that TMDB's API flat out refuses to give you search and filters at the same time (more on that below — it's a whole story).
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+## What's inside
 
-## React Compiler
+- **Pagination that doesn't flicker** — the old page stays on screen while the new one loads
+- **Sorting** — by popularity, rating, and title (A-Z and Z-A)
+- **Genre filter**, pulled straight from TMDB
+- **Search** that doesn't spam the API on every keystroke (debounce saves the day)
+- **Background refetch indicator** — so you always know data is loading, even while the old table is still visible
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+## The most interesting technical problem
 
-## Expanding the ESLint configuration
+TMDB's API is oddly designed: the endpoint for sorting and filtering (`/discover/movie`) can't do text search, and the endpoint for search (`/search/movie`) can't sort or filter. I checked TMDB's official forum, and the team straight up admitted there's no way to combine these on the API level — "you'll have to build that yourself."
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
+So that's what I did: when search is active, I take the raw results from `/search/movie` and filter/sort them myself on the client — turns out TMDB still returns a `genre_ids` field even in search results, so the genre filter doesn't get lost.
 
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
+## Stack
 
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
+- React + TypeScript
+- Vite
+- Tailwind CSS
+- TanStack Query (React Query v5)
+- TMDB API
 
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Getting started
+git clone https://github.com/your-username/screenly.git
+cd cinescope
+npm install
 
-```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+Create a `.env` file in the root (grab a free key at [themoviedb.org](https://www.themoviedb.org/settings/api)):
+VITE_TMDB_API_KEY=your_key_here
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
 
-```
+
+Then run:
+npm run dev
+
+
+
+## How the code is organized
+
+Each feature (pagination, sorting, filtering, search) lives in its own folder with separate `Container` (logic) and `View` (markup) components — makes the code easier to read and test than dumping everything into one giant file.
+
+## What's next
+
+- ARIA attributes on the loading indicator, so screen readers understand what's happening too
+- Migrating to Feature-Sliced Design
+- A movie details page (with lazy loading)
+- Favorite movies with local storage and optimistic UI
+
+## License
+
+This is a learning project. Movie data comes from TMDB, but the project itself is not affiliated with or endorsed by TMDB in any way.
